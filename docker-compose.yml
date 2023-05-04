@@ -1,0 +1,76 @@
+version: '3'
+
+networks:
+  frontend:
+    ipam:
+      config:
+        - subnet: 172.24.0.0/16
+  backend:
+    ipam:
+      config:
+        - subnet: 172.23.0.0/16
+
+services:
+
+  flask:
+    build:
+      context: webhook
+      dockerfile: Dockerfile
+    container_name: webhook 
+    image: webhook-flask-python:latest 
+    restart: always 
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./webhook:/app 
+    depends_on:
+      - mongodb 
+    networks:
+      frontend:
+        ipv4_address: 172.24.0.2
+      backend:
+        ipv4_address: 172.23.0.3 
+
+  mongodb:
+    image: mongo:6.0.3
+    container_name: mongodb
+    restart: unless-stopped
+    hostname: test_mongodb
+    ports:
+      - "27017:27017"
+    #command: mongod --auth
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: pass
+      MONGO_INITDB_DATABASE: offices
+      MONGODB_DATA_DIR: /data/db
+      MONDODB_LOG_DIR: /dev/null
+        - "TZ=Europe/Sofia"
+    volumes:
+      - ../mongodatadb:/data/db
+    networks:
+      backend:
+        ipv4_address: 172.23.0.2
+
+  webserver:
+    build:
+      context: nginx
+      dockerfile: Dockerfile
+    image: webserver:latest
+    container_name: webserver
+    restart: unless-stopped
+    environment:
+      APP_ENV: "prod"
+      APP_NAME: "webserver"
+      APP_DEBUG: "true"
+      SERVICE_NAME: "webserver"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../nginxdata:/var/log/nginx
+    depends_on:
+      - flask
+    networks:
+      frontend:
+        ipv4_address: 172.24.0.3

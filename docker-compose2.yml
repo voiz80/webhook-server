@@ -1,0 +1,75 @@
+### Wthout Static IP
+version: '3'
+services:
+
+  flask:
+    build:
+      context: webhook # folder when includes Dockerfile
+      dockerfile: Dockerfile
+    container_name: webhook # name of container
+    image: webhook-flask-python:latest # name of image after build
+    restart: always ####unless-stopped#### #allways alive container
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./webhook:/app # mount host directory "appdata" in container folder "/app""
+    depends_on:
+      - mongodb # webhook depends mongodb. Webhook it only work when mongodb else work!!! 
+    networks:
+      - frontend # name of netwroks that the webhook can access
+      - backend # name of netwroks that the webhook can access
+
+  mongodb:
+    image: mongo:6.0.3
+    container_name: mongodb
+    restart: unless-stopped
+    hostname: test_mongodb
+    ports:
+      - "27017:27017"
+    #command: mongod --auth
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: pass
+      MONGO_INITDB_DATABASE: offices
+      MONGODB_DATA_DIR: /data/db
+      MONDODB_LOG_DIR: /dev/null
+    volumes:
+      - ../mongodatadb:/data/db
+    networks:
+      - backend
+
+  webserver:
+    build:
+      context: nginx
+      dockerfile: Dockerfile
+    image: webserver:latest
+    container_name: webserver
+    restart: unless-stopped
+    environment:
+      APP_ENV: "prod"
+      APP_NAME: "webserver"
+      APP_DEBUG: "true"
+      SERVICE_NAME: "webserver"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../nginxdata:/var/log/nginx
+    depends_on:
+      - flask
+    networks:
+      - frontend
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+
+#volumes:
+  #mongodbdata:
+    #driver: local
+  #appdata:
+    #driver: local
+  #nginxdata:
+    #driver: local
