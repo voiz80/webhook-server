@@ -1,5 +1,4 @@
 # WebHook Listener
-# ....IN DEVELOPMENT ....
 WebHook Listener include: 3 container in one VM
  Docker container for: 
  - Web: Nginx for reverse and Gunicorn container (WSGI prod ENV) with 3 Worker in one container!!!
