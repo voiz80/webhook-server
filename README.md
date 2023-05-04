@@ -2,7 +2,7 @@
 WebHook Listener include: 3 container in one VM
  Docker container for: 
  - Web: Nginx for reverse and Gunicorn container (WSGI prod ENV) with 3 Worker in one container!!!
- - Webhook: Python server container for collect Json info from EasyPay PC Python 3.9
+ - Webhook: Python server container for collect Json info
  - MongoDB: mongodb container
 
 ## IF you developer on this repo ...
